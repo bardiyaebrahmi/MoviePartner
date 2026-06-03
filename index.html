@@ -579,8 +579,7 @@ body{
     <div id="join-section">
       <div class="form-group">
         <label class="form-label">Room Code / <span>کد اتاق</span></label>
-        <input id="join-code-input" class="form-input room-code-input" type="text" placeholder="ABC123" maxlength="6" autocomplete="off"/>
-      </div>
+        <input id="join-code-input" class="form-input room-code-input" type="text" placeholder="Host Code..." autocomplete="off"/>      </div>
       <button class="btn btn-cyan" style="width:100%;font-size:15px;padding:13px" onclick="joinRoom()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
         Join Room / <span style="font-family:var(--font-fa)">ورود به اتاق</span>
@@ -875,48 +874,51 @@ function createRoom() {
   if(!u){toast('Enter your name / نام وارد کنید','warn');return;}
   state.username = u;
   state.isHost = true;
-  state.roomCode = genCode();
+  // دیگر اینجا کد 6 رقمی تولید نمی‌کنیم
   localStorage.setItem('wt_user', u);
   initApp();
 }
 function joinRoom() {
   const u = document.getElementById('username-input').value.trim();
-  const code = document.getElementById('join-code-input').value.trim().toUpperCase();
+  const code = document.getElementById('join-code-input').value.trim();
   if(!u){toast('Enter your name / نام وارد کنید','warn');return;}
-  if(code.length<6){toast('Enter 6-char room code / کد ۶ کاراکتری وارد کنید','warn');return;}
+  if(code.length < 10){toast('کد اتاق نامعتبر است / Invalid Room Code','warn');return;}
   state.username = u;
   state.isHost = false;
-  state.roomCode = code;
+  state.roomCode = code; // در اینجا کد اتاق در واقع همان آیدی طولانی میزبان است
   localStorage.setItem('wt_user', u);
   initApp();
 }
-
 // ======================== PEER INIT ========================
 function initApp() {
   document.getElementById('landing').style.display='none';
   document.getElementById('app').style.display='flex';
-  document.getElementById('room-code-display').textContent = state.roomCode;
   document.getElementById('user-display').textContent = '👤 ' + state.username;
 
   updateStatus('connecting');
   addParticipant('me', state.username, state.isHost);
   renderParticipants();
 
-const peerId = state.isHost ? 'watchparty-host-' + state.roomCode : 'watchparty-guest-' + state.roomCode + '-' + genCode().toLowerCase();
   try {
-    state.peer = new Peer(peerId, state.peerConfig);
+    // مهم: اینجا هیچ آیدی سفارشی پاس نمی‌دهیم تا خود سرور یکی بسازد
+    state.peer = new Peer(state.peerConfig);
   } catch(e) {
-    showModal('PeerJS Error', 'Could not initialize PeerJS. Please check your internet connection.<br><br>خطا در راه‌اندازی PeerJS. اتصال اینترنت را بررسی کنید.');
+    showModal('PeerJS Error', 'Could not initialize PeerJS. Please check your internet connection.');
     return;
   }
 
   state.peer.on('open', id => {
     state.myPeerId = id;
     console.log('My peer ID:', id);
+    
     if(state.isHost) {
+      // اگر میزبان باشیم، آیدی تولید شده تبدیل به کد اتاق می‌شود
+      state.roomCode = id;
+      document.getElementById('room-code-display').textContent = 'کپی کنید (Copy)'; // چون آیدی طولانی است
       updateStatus('alone');
       toast('Room created! Share the code 🎉 / اتاق ایجاد شد!','success');
     } else {
+      document.getElementById('room-code-display').textContent = 'Connected';
       connectToHost();
     }
   });
@@ -929,11 +931,9 @@ const peerId = state.isHost ? 'watchparty-host-' + state.roomCode : 'watchparty-
     if(err.type === 'peer-unavailable') {
       toast('Host not found. Check the room code. / میزبان یافت نشد.','error');
       updateStatus('disconnected');
-    } else if(err.type === 'network' || err.type === 'server-error') {
-      toast('Connection error. PeerJS server may be unavailable. / خطای اتصال.','error');
-      updateStatus('disconnected');
     } else {
       toast('Peer error: ' + err.type,'error');
+      updateStatus('disconnected');
     }
   });
 
@@ -945,7 +945,8 @@ const peerId = state.isHost ? 'watchparty-host-' + state.roomCode : 'watchparty-
 }
 
 function connectToHost() {
-  const hostId = 'wt-host-' + state.roomCode;
+  // مهمان مستقیما به آیدی میزبان که همان roomCode است متصل می‌شود
+  const hostId = state.roomCode;
   updateStatus('connecting');
   toast('Connecting to host... / در حال اتصال...','info');
   const conn = state.peer.connect(hostId, {reliable:true, metadata:{name:state.username}});
