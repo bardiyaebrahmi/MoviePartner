@@ -851,12 +851,30 @@ const state = {
   // peer config
   peerConfig: {
     debug: 1,
-    pingInterval: 5000, // این خط از قطع شدن وب‌سوکت جلوگیری می‌کند
+    pingInterval: 5000,
     config: {
       iceServers: [
-        {urls: 'stun:stun.l.google.com:19302'},
-        {urls: 'stun:stun1.l.google.com:19302'},
-        {urls: 'stun:global.stun.twilio.com:3478'}
+        // سرورهای STUN (برای پیدا کردن آی‌پی - کلودفلر تو ایران خیلی بهتر از گوگل جواب میده)
+        { urls: 'stun:stun.cloudflare.com:3478' },
+        { urls: 'stun:stun.l.google.com:19302' },
+        
+        // سرورهای TURN (حیاتی برای اتصال در ایران بدون فیلترشکن)
+        // این یک سرور تست رایگان است (Metered). برای استفاده دائمی بهتر است خودتان حساب رایگان بسازید
+        {
+          urls: 'turn:openrelay.metered.ca:80',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        {
+          urls: 'turn:openrelay.metered.ca:443',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        {
+          urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        }
       ]
     }
   }
