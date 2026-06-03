@@ -818,7 +818,8 @@ const state = {
   activeTab: 'participants',
   // peer config
   peerConfig: {
-    debug: 0,
+    debug: 1,
+    pingInterval: 5000, // این خط از قطع شدن وب‌سوکت جلوگیری می‌کند
     config: {
       iceServers: [
         {urls: 'stun:stun.l.google.com:19302'},
@@ -901,8 +902,7 @@ function initApp() {
   addParticipant('me', state.username, state.isHost);
   renderParticipants();
 
-  const peerId = state.isHost ? 'wt-host-' + state.roomCode : 'wt-guest-' + state.roomCode + '-' + genCode().toLowerCase();
-
+const peerId = state.isHost ? 'watchparty-host-' + state.roomCode : 'watchparty-guest-' + state.roomCode + '-' + genCode().toLowerCase();
   try {
     state.peer = new Peer(peerId, state.peerConfig);
   } catch(e) {
