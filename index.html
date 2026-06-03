@@ -851,29 +851,35 @@ const state = {
   // peer config
   peerConfig: {
     debug: 1,
-    pingInterval: 5000,
+    pingInterval: 5000, // جلوگیری از قطع شدن وب‌سوکت
     config: {
       iceServers: [
-        // سرورهای STUN (برای پیدا کردن آی‌پی - کلودفلر تو ایران خیلی بهتر از گوگل جواب میده)
-        { urls: 'stun:stun.cloudflare.com:3478' },
-        { urls: 'stun:stun.l.google.com:19302' },
-        
-        // سرورهای TURN (حیاتی برای اتصال در ایران بدون فیلترشکن)
-        // این یک سرور تست رایگان است (Metered). برای استفاده دائمی بهتر است خودتان حساب رایگان بسازید
         {
-          urls: 'turn:openrelay.metered.ca:80',
-          username: 'openrelayproject',
-          credential: 'openrelayproject'
+          urls: "stun:stun.relay.metered.ca:80",
         },
         {
-          urls: 'turn:openrelay.metered.ca:443',
-          username: 'openrelayproject',
-          credential: 'openrelayproject'
+          urls: "turn:global.relay.metered.ca:80",
+          username: "cffa68dbb7da8080040da3c6",
+          credential: "MtQ6UZj7QN35R0Sw",
         },
         {
-          urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-          username: 'openrelayproject',
-          credential: 'openrelayproject'
+          urls: "turn:global.relay.metered.ca:80?transport=tcp",
+          username: "cffa68dbb7da8080040da3c6",
+          credential: "MtQ6UZj7QN35R0Sw",
+        },
+        {
+          urls: "turn:global.relay.metered.ca:443",
+          username: "cffa68dbb7da8080040da3c6",
+          credential: "MtQ6UZj7QN35R0Sw",
+        },
+        {
+          urls: "turns:global.relay.metered.ca:443?transport=tcp",
+          username: "cffa68dbb7da8080040da3c6",
+          credential: "MtQ6UZj7QN35R0Sw",
+        },
+        // اضافه کردن STUN کلودفلر هم به عنوان نیروی کمکی پیشنهاد میشه
+        {
+          urls: 'stun:stun.cloudflare.com:3478'
         }
       ]
     }
